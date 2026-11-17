@@ -274,6 +274,49 @@
     </main>
   </div>
 
+<!-- PAYORBIT AUTHENTICATION -->
+<section id="authScreen" class="auth-screen">
+  <div class="auth-box">
+    <div class="brand">
+      <div class="brand-icon">P</div>
+      <span>PayOrbit</span>
+    </div>
+
+    <h1 id="authTitle">Welcome Back</h1>
+    <p id="authSubtitle">Login to your PayOrbit account</p>
+
+    <form id="loginForm">
+      <label>Email Address</label>
+      <input type="email" id="loginEmail" placeholder="Enter email" required>
+
+      <label>Password</label>
+      <input type="password" id="loginPassword" placeholder="Enter password" required>
+
+      <button type="submit" class="primary-button">Login</button>
+    </form>
+
+    <form id="signupForm" hidden>
+      <label>Your Name</label>
+      <input type="text" id="signupName" placeholder="Enter your name" required>
+
+      <label>Email Address</label>
+      <input type="email" id="signupEmail" placeholder="Enter email" required>
+
+      <label>Password</label>
+      <input type="password" id="signupPassword" placeholder="Minimum 8 characters" minlength="8" required>
+
+      <button type="submit" class="primary-button">Create Account</button>
+    </form>
+
+    <p id="authMessage" role="status"></p>
+
+    <p class="auth-switch">
+      <span id="switchText">Don't have an account?</span>
+      <button type="button" id="switchAuth">Sign Up</button>
+    </p>
+  </div>
+</section>
+
   <script src="app.js"></script>
   
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
