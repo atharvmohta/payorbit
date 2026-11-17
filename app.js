@@ -1,6 +1,6 @@
 
 // =====================================
-// PAYORBIT - AUTHENTICATION + DASHBOARD
+// PAYORBIT - SUPABASE AUTH + USER DATA
 // =====================================
 
 const state = {
@@ -8,33 +8,33 @@ const state = {
   rewards: 0,
   transactions: [],
   withdrawals: [],
-  commission: 5,
-  fixedReward: 10,
   minimumWithdrawal: 100
 };
 
 let currentUser = null;
-let supabaseClientInstance = window.supabase
-  ? supabaseClient
-  : null;
+let supabaseClientInstance =
+  typeof supabaseClient !== "undefined"
+    ? supabaseClient
+    : null;
 
-// Elements
 const authScreen = document.getElementById("authScreen");
 const loginForm = document.getElementById("loginForm");
 const signupForm = document.getElementById("signupForm");
 const authMessage = document.getElementById("authMessage");
 
-// Currency formatter
+// =====================================
+// HELPERS
+// =====================================
+
 function money(amount) {
-  return "₹" + Number(amount).toLocaleString("en-IN", {
+  return "₹" + Number(amount || 0).toLocaleString("en-IN", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
   });
 }
 
-// Safe HTML
 function escapeHTML(value) {
-  return String(value).replace(/[&<>"']/g, char => ({
+  return String(value ?? "").replace(/[&<>"']/g, char => ({
     "&": "&amp;",
     "<": "&lt;",
     ">": "&gt;",
@@ -43,7 +43,17 @@ function escapeHTML(value) {
   })[char]);
 }
 
-// Show login or dashboard
+function formatDate(value) {
+  return new Date(value).toLocaleString("en-IN");
+}
+
+function showMessage(element, message, isError = false) {
+  if (!element) return;
+
+  element.textContent = message;
+  element.style.color = isError ? "#ff687b" : "#26d99a";
+}
+
 function showApp(isLoggedIn) {
   if (isLoggedIn) {
     document.body.classList.add("authenticated");
@@ -52,10 +62,34 @@ function showApp(isLoggedIn) {
     document.body.classList.remove("authenticated");
     authScreen.hidden = false;
     currentUser = null;
+
+    state.transactions = [];
+    state.withdrawals = [];
+    state.balance = 0;
+    state.rewards = 0;
+
+    updateDashboard();
   }
 }
 
-// Switch login/signup
+// =====================================
+// CHECK SUPABASE CONNECTION
+// =====================================
+
+if (!supabaseClientInstance) {
+  showMessage(
+    authMessage,
+    "Supabase connection missing. Please check supabase.js.",
+    true
+  );
+
+  throw new Error("PayOrbit Supabase client not initialized.");
+}
+
+// =====================================
+// SWITCH LOGIN / SIGNUP
+// =====================================
+
 document.getElementById("switchAuth").addEventListener("click", () => {
   const showingLogin = !loginForm.hidden;
 
@@ -78,10 +112,13 @@ document.getElementById("switchAuth").addEventListener("click", () => {
   document.getElementById("switchAuth").textContent =
     showingLogin ? "Login" : "Sign Up";
 
-  authMessage.textContent = "";
+  showMessage(authMessage, "");
 });
 
-// Signup
+// =====================================
+// SIGNUP
+// =====================================
+
 signupForm.addEventListener("submit", async event => {
   event.preventDefault();
 
@@ -89,56 +126,74 @@ signupForm.addEventListener("submit", async event => {
   const email = document.getElementById("signupEmail").value.trim();
   const password = document.getElementById("signupPassword").value;
 
-  authMessage.textContent = "Creating your account...";
-
-  const { data, error } = await supabaseClientInstance.auth.signUp({
-    email,
-    password,
-    options: {
-      data: {
-        display_name: name
-      }
-    }
-  });
-
-  if (error) {
-    authMessage.textContent = error.message;
+  if (!name) {
+    showMessage(authMessage, "Please enter your name.", true);
     return;
   }
 
-  if (data.session) {
-    authMessage.textContent = "Account created successfully!";
-  } else {
-    authMessage.textContent =
-      "Account created! Please verify your email, then login.";
-    signupForm.reset();
+  showMessage(authMessage, "Creating your account...");
+
+  try {
+    const { data, error } =
+      await supabaseClientInstance.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            display_name: name
+          }
+        }
+      });
+
+    if (error) throw error;
+
+    if (data.session) {
+      showMessage(authMessage, "Account created successfully!");
+    } else {
+      showMessage(
+        authMessage,
+        "Account created. Verify your email before logging in."
+      );
+      signupForm.reset();
+    }
+
+  } catch (error) {
+    showMessage(authMessage, error.message, true);
   }
 });
 
-// Login
+// =====================================
+// LOGIN
+// =====================================
+
 loginForm.addEventListener("submit", async event => {
   event.preventDefault();
 
   const email = document.getElementById("loginEmail").value.trim();
   const password = document.getElementById("loginPassword").value;
 
-  authMessage.textContent = "Logging in...";
+  showMessage(authMessage, "Logging in...");
 
-  const { error } =
-    await supabaseClientInstance.auth.signInWithPassword({
-      email,
-      password
-    });
+  try {
+    const { error } =
+      await supabaseClientInstance.auth.signInWithPassword({
+        email,
+        password
+      });
 
-  if (error) {
-    authMessage.textContent = error.message;
-    return;
+    if (error) throw error;
+
+    showMessage(authMessage, "Login successful!");
+
+  } catch (error) {
+    showMessage(authMessage, error.message, true);
   }
-
-  authMessage.textContent = "Login successful!";
 });
 
-// Load or create profile
+// =====================================
+// LOAD USER PROFILE
+// =====================================
+
 async function loadProfile(user) {
   const fallbackName =
     user.user_metadata?.display_name ||
@@ -153,21 +208,22 @@ async function loadProfile(user) {
     .eq("id", user.id)
     .maybeSingle();
 
-  if (!error && data) {
+  if (error) {
+    console.error("Profile loading:", error.message);
+  } else if (data) {
     displayName = data.display_name || fallbackName;
-  } else if (!data) {
-    const { error: insertError } = await supabaseClientInstance
-      .from("profiles")
-      .insert({
-        id: user.id,
-        display_name: fallbackName
-      });
+  } else {
+    const { error: insertError } =
+      await supabaseClientInstance
+        .from("profiles")
+        .insert({
+          id: user.id,
+          display_name: fallbackName
+        });
 
     if (insertError) {
       console.error("Profile creation:", insertError.message);
     }
-  } else {
-    console.error("Profile loading:", error.message);
   }
 
   document.getElementById("userDisplayName").textContent =
@@ -183,57 +239,128 @@ async function loadProfile(user) {
     user.email || "";
 }
 
-// Authentication state
-function handleSession(session) {
-  if (session?.user) {
-    currentUser = session.user;
-    showApp(true);
-    loadProfile(session.user);
+// =====================================
+// LOAD PRIVATE USER DATA
+// =====================================
+
+async function loadUserData(user) {
+  try {
+    const { data: transactions, error: txError } =
+      await supabaseClientInstance
+        .from("transactions")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+
+    if (txError) throw txError;
+
+    const { data: withdrawals, error: wdError } =
+      await supabaseClientInstance
+        .from("withdrawal_requests")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+
+    if (wdError) throw wdError;
+
+    if (currentUser?.id !== user.id) return;
+
+    state.transactions = transactions || [];
+    state.withdrawals = withdrawals || [];
+
+    state.rewards = state.transactions
+      .filter(tx => tx.type === "reward")
+      .reduce((total, tx) => total + Number(tx.amount), 0);
+
+    // No real-money balance is calculated from client-created records.
+    state.balance = 0;
+
     updateDashboard();
-  } else {
-    showApp(false);
+
+  } catch (error) {
+    console.error("User data loading:", error.message);
+
+    showMessage(
+      authMessage,
+      "Could not load account history: " + error.message,
+      true
+    );
   }
 }
 
-// Listen for login/logout changes
-supabaseClientInstance.auth.onAuthStateChange(
-  (event, session) => {
-    handleSession(session);
-  }
-);
+// =====================================
+// AUTHENTICATION STATE
+// =====================================
 
-// Check existing login
-async function checkLogin() {
-  const { data, error } =
-    await supabaseClientInstance.auth.getSession();
-
-  if (error) {
-    authMessage.textContent = error.message;
+async function handleSession(session) {
+  if (!session?.user) {
     showApp(false);
     return;
   }
 
-  handleSession(data.session);
+  const user = session.user;
+
+  currentUser = user;
+  showApp(true);
+
+  await loadProfile(user);
+
+  if (currentUser?.id !== user.id) return;
+
+  await loadUserData(user);
 }
 
-// Logout
+// Listen for login and logout.
+// setTimeout avoids doing database work inside the auth callback.
+
+supabaseClientInstance.auth.onAuthStateChange(
+  (event, session) => {
+    setTimeout(() => {
+      handleSession(session);
+    }, 0);
+  }
+);
+
+// Check existing login
+
+async function checkLogin() {
+  try {
+    const { data, error } =
+      await supabaseClientInstance.auth.getSession();
+
+    if (error) throw error;
+
+    await handleSession(data.session);
+
+  } catch (error) {
+    showMessage(authMessage, error.message, true);
+    showApp(false);
+  }
+}
+
+// =====================================
+// LOGOUT
+// =====================================
+
 document.getElementById("logoutButton")
   .addEventListener("click", async () => {
 
-    const { error } =
-      await supabaseClientInstance.auth.signOut();
+    try {
+      const { error } =
+        await supabaseClientInstance.auth.signOut();
 
-    if (error) {
+      if (error) throw error;
+
+      loginForm.reset();
+      showMessage(authMessage, "You have logged out.");
+
+    } catch (error) {
       alert(error.message);
-      return;
     }
-
-    loginForm.reset();
-    authMessage.textContent = "You have logged out.";
   });
 
 // =====================================
-// DEMO DASHBOARD
+// DASHBOARD
 // =====================================
 
 function updateDashboard() {
@@ -251,32 +378,42 @@ function updateDashboard() {
   renderWithdrawals();
 }
 
+// =====================================
+// TRANSACTIONS
+// =====================================
+
 function renderTransactions() {
-  const container =
-    document.getElementById("transactionList");
+  const container = document.getElementById("transactionList");
 
   if (!state.transactions.length) {
     container.innerHTML =
-      '<p class="empty-state">No demo transactions yet.</p>';
+      '<p class="empty-state">No transactions yet.</p>';
     return;
   }
 
-  container.innerHTML = state.transactions.map(tx => `
-    <div class="activity-item">
-      <div>
-        <strong>${escapeHTML(tx.title)}</strong>
-        <small>${escapeHTML(tx.date)}</small>
+  container.innerHTML = state.transactions.map(tx => {
+    const isCredit = tx.type === "reward" || tx.type === "deposit";
+
+    return `
+      <div class="activity-item">
+        <div>
+          <strong>${escapeHTML(tx.type)}</strong>
+          <small>${escapeHTML(formatDate(tx.created_at))}</small>
+        </div>
+        <div class="activity-amount ${isCredit ? "positive" : "negative"}">
+          ${isCredit ? "+" : "-"}${money(tx.amount)}
+        </div>
       </div>
-      <div class="activity-amount ${tx.type === "credit" ? "positive" : "negative"}">
-        ${tx.type === "credit" ? "+" : "-"}${money(tx.amount)}
-      </div>
-    </div>
-  `).join("");
+    `;
+  }).join("");
 }
 
+// =====================================
+// RECENT ACTIVITY
+// =====================================
+
 function renderRecentActivity() {
-  const container =
-    document.getElementById("recentActivity");
+  const container = document.getElementById("recentActivity");
 
   if (!state.transactions.length) {
     container.innerHTML =
@@ -284,22 +421,29 @@ function renderRecentActivity() {
     return;
   }
 
-  container.innerHTML = state.transactions.slice(0, 5).map(tx => `
-    <div class="activity-item">
-      <div>
-        <strong>${escapeHTML(tx.title)}</strong>
-        <small>${escapeHTML(tx.date)}</small>
+  container.innerHTML = state.transactions.slice(0, 5).map(tx => {
+    const isCredit = tx.type === "reward" || tx.type === "deposit";
+
+    return `
+      <div class="activity-item">
+        <div>
+          <strong>${escapeHTML(tx.type)}</strong>
+          <small>${escapeHTML(formatDate(tx.created_at))}</small>
+        </div>
+        <div class="activity-amount ${isCredit ? "positive" : "negative"}">
+          ${isCredit ? "+" : "-"}${money(tx.amount)}
+        </div>
       </div>
-      <div class="activity-amount ${tx.type === "credit" ? "positive" : "negative"}">
-        ${tx.type === "credit" ? "+" : "-"}${money(tx.amount)}
-      </div>
-    </div>
-  `).join("");
+    `;
+  }).join("");
 }
 
+// =====================================
+// WITHDRAWAL HISTORY
+// =====================================
+
 function renderWithdrawals() {
-  const container =
-    document.getElementById("withdrawalList");
+  const container = document.getElementById("withdrawalList");
 
   if (!state.withdrawals.length) {
     container.innerHTML =
@@ -311,16 +455,24 @@ function renderWithdrawals() {
     <div class="activity-item">
       <div>
         <strong>${money(item.amount)}</strong>
-        <small>${escapeHTML(item.method)} · ${escapeHTML(item.date)}</small>
+        <small>
+          ${escapeHTML(item.method)} ·
+          ${escapeHTML(formatDate(item.created_at))}
+        </small>
       </div>
-      <span class="demo-label">DEMO REQUEST</span>
+      <span class="demo-label">
+        ${escapeHTML(item.status.toUpperCase())}
+      </span>
     </div>
   `).join("");
 }
 
-// Demo withdrawal request
+// =====================================
+// SAVE DEMO WITHDRAWAL REQUEST
+// =====================================
+
 document.getElementById("withdrawalForm")
-  .addEventListener("submit", event => {
+  .addEventListener("submit", async event => {
 
     event.preventDefault();
 
@@ -334,83 +486,93 @@ document.getElementById("withdrawalForm")
     const message =
       document.getElementById("withdrawMessage");
 
+    if (!currentUser) {
+      showMessage(message, "Please login first.", true);
+      return;
+    }
+
     if (!Number.isFinite(amount) || amount <= 0) {
-      message.textContent = "Enter a valid amount.";
+      showMessage(message, "Enter a valid amount.", true);
       return;
     }
 
     if (amount < state.minimumWithdrawal) {
-      message.textContent =
-        "Minimum demo withdrawal is " +
-        money(state.minimumWithdrawal);
+      showMessage(
+        message,
+        "Minimum demo request is " + money(state.minimumWithdrawal),
+        true
+      );
       return;
     }
 
-    if (amount > state.balance) {
-      message.textContent = "Insufficient demo balance.";
-      return;
+    showMessage(message, "Saving demo request...");
+
+    try {
+      const { error } = await supabaseClientInstance
+        .from("withdrawal_requests")
+        .insert({
+          user_id: currentUser.id,
+          amount,
+          method,
+          status: "pending"
+        });
+
+      if (error) throw error;
+
+      event.target.reset();
+
+      showMessage(
+        message,
+        "Demo request saved. No real payment was made."
+      );
+
+      await loadUserData(currentUser);
+
+    } catch (error) {
+      showMessage(message, error.message, true);
     }
-
-    state.withdrawals.unshift({
-      amount,
-      method,
-      date: new Date().toLocaleString("en-IN")
-    });
-
-    message.textContent =
-      "Demo request recorded. No real payment was made.";
-
-    event.target.reset();
-    updateDashboard();
   });
 
-// Demo admin settings
-document.getElementById("settingsForm")
-  .addEventListener("submit", event => {
+// =====================================
+// DEMO ADMIN SETTINGS
+// =====================================
 
-    event.preventDefault();
+const settingsForm = document.getElementById("settingsForm");
 
-    const commission =
-      Number(document.getElementById("commission").value);
+settingsForm.addEventListener("submit", event => {
+  event.preventDefault();
 
-    const fixedReward =
-      Number(document.getElementById("fixedReward").value);
+  const minimumWithdrawal = Number(
+    document.getElementById("minimumWithdrawal").value
+  );
 
-    const minimumWithdrawal =
-      Number(document.getElementById("minimumWithdrawal").value);
+  const message = document.getElementById("settingsMessage");
 
-    const message =
-      document.getElementById("settingsMessage");
+  if (!Number.isFinite(minimumWithdrawal) || minimumWithdrawal < 1) {
+    showMessage(message, "Enter a valid minimum amount.", true);
+    return;
+  }
 
-    if (
-      !Number.isFinite(commission) ||
-      commission < 0 ||
-      commission > 100 ||
-      !Number.isFinite(fixedReward) ||
-      fixedReward < 0 ||
-      !Number.isFinite(minimumWithdrawal) ||
-      minimumWithdrawal < 1
-    ) {
-      message.textContent = "Please enter valid settings.";
-      return;
-    }
+  state.minimumWithdrawal = minimumWithdrawal;
 
-    state.commission = commission;
-    state.fixedReward = fixedReward;
-    state.minimumWithdrawal = minimumWithdrawal;
+  showMessage(message, "Local demo setting saved.");
+});
 
-    message.textContent = "Demo settings saved.";
-  });
+// =====================================
+// HIDE UNFINISHED ADMIN SECTION
+// =====================================
 
-// Hide unfinished admin controls from normal users
 const adminLink = document.querySelector('a[href="#admin"]');
 const adminSection = document.getElementById("admin");
 
 if (adminLink) adminLink.hidden = true;
 if (adminSection) adminSection.hidden = true;
 
-// Start application
+// =====================================
+// START APPLICATION
+// =====================================
+
 showApp(false);
 checkLogin();
 
-console.log("PayOrbit authentication app loaded.");
+console.log("PayOrbit app loaded.");
