@@ -10,10 +10,57 @@
 </head>
 
 <body>
+
+  <!-- LOGIN AND SIGNUP SCREEN -->
+  <section id="authScreen" class="auth-screen">
+    <div class="auth-box">
+
+      <div class="brand">
+        <div class="brand-icon">P</div>
+        <span>PayOrbit</span>
+      </div>
+
+      <h1 id="authTitle">Welcome Back</h1>
+      <p id="authSubtitle">Login to your PayOrbit account</p>
+
+      <form id="loginForm">
+        <label>Email Address</label>
+        <input type="email" id="loginEmail" placeholder="Enter email" required>
+
+        <label>Password</label>
+        <input type="password" id="loginPassword" placeholder="Enter password" required>
+
+        <button type="submit" class="primary-button">Login</button>
+      </form>
+
+      <form id="signupForm" hidden>
+        <label>Your Name</label>
+        <input type="text" id="signupName" placeholder="Enter your name" required>
+
+        <label>Email Address</label>
+        <input type="email" id="signupEmail" placeholder="Enter email" required>
+
+        <label>Password</label>
+        <input type="password" id="signupPassword" placeholder="Minimum 8 characters" minlength="8" required>
+
+        <button type="submit" class="primary-button">Create Account</button>
+      </form>
+
+      <p id="authMessage" role="status"></p>
+
+      <p class="auth-switch">
+        <span id="switchText">Don't have an account?</span>
+        <button type="button" id="switchAuth">Sign Up</button>
+      </p>
+    </div>
+  </section>
+
+  <!-- MAIN APPLICATION -->
   <div class="app">
 
-    <!-- Sidebar -->
+    <!-- SIDEBAR -->
     <aside class="sidebar">
+
       <div class="brand">
         <div class="brand-icon">P</div>
         <span>PayOrbit</span>
@@ -28,15 +75,17 @@
       </nav>
 
       <div class="sidebar-bottom">
-        <p>PayOrbit Demo v1.0</p>
+        <p>PayOrbit v2.0</p>
         <span>● Demo environment</span>
       </div>
+
     </aside>
 
-    <!-- Main Content -->
+    <!-- MAIN CONTENT -->
     <main class="main-content">
 
       <header class="topbar">
+
         <div>
           <p class="welcome-text">Welcome back,</p>
           <h2>My Dashboard</h2>
@@ -45,14 +94,19 @@
         <div class="user-profile">
           <div class="avatar">U</div>
           <div>
-            <strong>Demo User</strong>
-            <small>Standard Account</small>
+            <strong id="userDisplayName">User</strong>
+            <small id="userEmailDisplay">Account</small>
           </div>
+          <button type="button" id="logoutButton" class="primary-button">
+            Logout
+          </button>
         </div>
+
       </header>
 
-      <!-- Dashboard -->
+      <!-- DASHBOARD -->
       <section id="dashboard" class="section">
+
         <div class="section-heading">
           <div>
             <h1>Overview</h1>
@@ -62,6 +116,7 @@
         </div>
 
         <div class="stats-grid">
+
           <div class="stat-card balance-card">
             <p>Available Demo Balance</p>
             <h2 id="balance">₹0.00</h2>
@@ -79,14 +134,17 @@
             <h2 id="totalTransactions">0</h2>
             <span>Demo activity</span>
           </div>
+
         </div>
 
         <div class="content-card">
+
           <div class="card-heading">
             <h3>Quick Actions</h3>
           </div>
 
           <div class="quick-actions">
+
             <a href="#transactions" class="action-button">
               <span>↔</span>
               <strong>Transactions</strong>
@@ -104,10 +162,12 @@
               <strong>My Profile</strong>
               <small>Account details</small>
             </a>
+
           </div>
         </div>
 
         <div class="content-card">
+
           <div class="card-heading">
             <h3>Recent Activity</h3>
             <a href="#transactions">View all</a>
@@ -116,11 +176,14 @@
           <div id="recentActivity" class="activity-list">
             <p class="empty-state">No activity available yet.</p>
           </div>
+
         </div>
+
       </section>
 
-      <!-- Transactions -->
+      <!-- TRANSACTIONS -->
       <section id="transactions" class="section">
+
         <div class="section-heading">
           <div>
             <h1>Transactions</h1>
@@ -133,10 +196,12 @@
             <p class="empty-state">No demo transactions yet.</p>
           </div>
         </div>
+
       </section>
 
-      <!-- Withdrawals -->
+      <!-- WITHDRAWALS -->
       <section id="withdrawals" class="section">
+
         <div class="section-heading">
           <div>
             <h1>Withdrawals</h1>
@@ -145,12 +210,15 @@
         </div>
 
         <div class="content-card">
+
           <h3>Request a Demo Withdrawal</h3>
+
           <p class="muted">
             This is a demonstration only. No real money will be transferred.
           </p>
 
           <form id="withdrawalForm">
+
             <label for="withdrawAmount">Amount (₹)</label>
             <input
               type="number"
@@ -161,6 +229,7 @@
             >
 
             <label for="withdrawMethod">Demo payout method</label>
+
             <select id="withdrawMethod">
               <option value="Demo UPI">Demo UPI</option>
               <option value="Demo Bank">Demo Bank</option>
@@ -169,60 +238,76 @@
             <button type="submit" class="primary-button">
               Submit Demo Request
             </button>
+
           </form>
 
           <div id="withdrawMessage" class="message"></div>
+
         </div>
 
         <div class="content-card">
           <h3>Withdrawal History</h3>
+
           <div id="withdrawalList">
             <p class="empty-state">No withdrawal requests yet.</p>
           </div>
         </div>
+
       </section>
 
-      <!-- Profile -->
+      <!-- PROFILE -->
       <section id="profile" class="section">
+
         <div class="section-heading">
           <div>
             <h1>My Profile</h1>
-            <p>Your demo account information.</p>
+            <p>Your account information.</p>
           </div>
         </div>
 
         <div class="content-card profile-card">
+
           <div class="large-avatar">U</div>
-          <h2>Demo User</h2>
-          <p class="muted">demo@payorbit.example</p>
+
+          <h2 id="profileName">User</h2>
+          <p class="muted" id="profileEmail">Email</p>
+
           <div class="profile-detail">
             <span>Account Type</span>
             <strong>Demo Account</strong>
           </div>
+
           <div class="profile-detail">
             <span>Account Status</span>
-            <strong class="status-active">Active Demo</strong>
+            <strong class="status-active">Active</strong>
           </div>
+
         </div>
+
       </section>
 
-      <!-- Admin Settings -->
+      <!-- ADMIN SETTINGS -->
       <section id="admin" class="section">
+
         <div class="section-heading">
           <div>
             <h1>Admin Settings</h1>
             <p>Configure illustrative demo rewards.</p>
           </div>
+
           <span class="demo-label">LOCAL DEMO</span>
         </div>
 
         <div class="content-card">
+
           <h3>Reward Configuration</h3>
+
           <p class="muted">
             These settings only affect the local demonstration.
           </p>
 
           <form id="settingsForm">
+
             <label for="commission">Demo Reward Percentage (%)</label>
             <input
               type="number"
@@ -252,19 +337,25 @@
             <button type="submit" class="primary-button">
               Save Demo Settings
             </button>
+
           </form>
 
           <div id="settingsMessage" class="message"></div>
+
         </div>
 
         <div class="content-card warning-card">
+
           <h3>Important</h3>
+
           <p>
-            This is a front-end prototype. It has no real payment processing,
-            authentication, database or payout connection. All displayed
-            balances and rewards are illustrative and cannot be withdrawn.
+            This is a demonstration platform. Balances, rewards and
+            withdrawals are illustrative only. Real payments require
+            an authorized payment provider and secure backend.
           </p>
+
         </div>
+
       </section>
 
       <footer>
@@ -274,53 +365,10 @@
     </main>
   </div>
 
-<!-- PAYORBIT AUTHENTICATION -->
-<section id="authScreen" class="auth-screen">
-  <div class="auth-box">
-    <div class="brand">
-      <div class="brand-icon">P</div>
-      <span>PayOrbit</span>
-    </div>
-
-    <h1 id="authTitle">Welcome Back</h1>
-    <p id="authSubtitle">Login to your PayOrbit account</p>
-
-    <form id="loginForm">
-      <label>Email Address</label>
-      <input type="email" id="loginEmail" placeholder="Enter email" required>
-
-      <label>Password</label>
-      <input type="password" id="loginPassword" placeholder="Enter password" required>
-
-      <button type="submit" class="primary-button">Login</button>
-    </form>
-
-    <form id="signupForm" hidden>
-      <label>Your Name</label>
-      <input type="text" id="signupName" placeholder="Enter your name" required>
-
-      <label>Email Address</label>
-      <input type="email" id="signupEmail" placeholder="Enter email" required>
-
-      <label>Password</label>
-      <input type="password" id="signupPassword" placeholder="Minimum 8 characters" minlength="8" required>
-
-      <button type="submit" class="primary-button">Create Account</button>
-    </form>
-
-    <p id="authMessage" role="status"></p>
-
-    <p class="auth-switch">
-      <span id="switchText">Don't have an account?</span>
-      <button type="button" id="switchAuth">Sign Up</button>
-    </p>
-  </div>
-</section>
-
+  <!-- LOAD SUPABASE BEFORE APPLICATION CODE -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase.js"></script>
   <script src="app.js"></script>
-  
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="supabase.js"></script>
 
 </body>
 </html>
