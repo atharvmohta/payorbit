@@ -1,0 +1,279 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#090d18">
+  <title>PayOrbit | Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <div class="app">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-icon">P</div>
+        <span>PayOrbit</span>
+      </div>
+
+      <nav>
+        <a href="#dashboard" class="nav-link active">⌂ Dashboard</a>
+        <a href="#transactions" class="nav-link">↔ Transactions</a>
+        <a href="#withdrawals" class="nav-link">⇧ Withdrawals</a>
+        <a href="#profile" class="nav-link">◉ Profile</a>
+        <a href="#admin" class="nav-link">⚙ Admin Settings</a>
+      </nav>
+
+      <div class="sidebar-bottom">
+        <p>PayOrbit Demo v1.0</p>
+        <span>● Demo environment</span>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+
+      <header class="topbar">
+        <div>
+          <p class="welcome-text">Welcome back,</p>
+          <h2>My Dashboard</h2>
+        </div>
+
+        <div class="user-profile">
+          <div class="avatar">U</div>
+          <div>
+            <strong>Demo User</strong>
+            <small>Standard Account</small>
+          </div>
+        </div>
+      </header>
+
+      <!-- Dashboard -->
+      <section id="dashboard" class="section">
+        <div class="section-heading">
+          <div>
+            <h1>Overview</h1>
+            <p>Here's your account summary.</p>
+          </div>
+          <span class="demo-label">DEMO MODE</span>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card balance-card">
+            <p>Available Demo Balance</p>
+            <h2 id="balance">₹0.00</h2>
+            <span>Illustrative balance only</span>
+          </div>
+
+          <div class="stat-card">
+            <p>Total Demo Rewards</p>
+            <h2 id="rewards">₹0.00</h2>
+            <span>Sample reward records</span>
+          </div>
+
+          <div class="stat-card">
+            <p>Total Transactions</p>
+            <h2 id="totalTransactions">0</h2>
+            <span>Demo activity</span>
+          </div>
+        </div>
+
+        <div class="content-card">
+          <div class="card-heading">
+            <h3>Quick Actions</h3>
+          </div>
+
+          <div class="quick-actions">
+            <a href="#transactions" class="action-button">
+              <span>↔</span>
+              <strong>Transactions</strong>
+              <small>View activity</small>
+            </a>
+
+            <a href="#withdrawals" class="action-button">
+              <span>⇧</span>
+              <strong>Withdrawals</strong>
+              <small>View demo requests</small>
+            </a>
+
+            <a href="#profile" class="action-button">
+              <span>◉</span>
+              <strong>My Profile</strong>
+              <small>Account details</small>
+            </a>
+          </div>
+        </div>
+
+        <div class="content-card">
+          <div class="card-heading">
+            <h3>Recent Activity</h3>
+            <a href="#transactions">View all</a>
+          </div>
+
+          <div id="recentActivity" class="activity-list">
+            <p class="empty-state">No activity available yet.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Transactions -->
+      <section id="transactions" class="section">
+        <div class="section-heading">
+          <div>
+            <h1>Transactions</h1>
+            <p>Your demo transaction history.</p>
+          </div>
+        </div>
+
+        <div class="content-card">
+          <div id="transactionList" class="activity-list">
+            <p class="empty-state">No demo transactions yet.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Withdrawals -->
+      <section id="withdrawals" class="section">
+        <div class="section-heading">
+          <div>
+            <h1>Withdrawals</h1>
+            <p>Manage simulated withdrawal requests.</p>
+          </div>
+        </div>
+
+        <div class="content-card">
+          <h3>Request a Demo Withdrawal</h3>
+          <p class="muted">
+            This is a demonstration only. No real money will be transferred.
+          </p>
+
+          <form id="withdrawalForm">
+            <label for="withdrawAmount">Amount (₹)</label>
+            <input
+              type="number"
+              id="withdrawAmount"
+              placeholder="Enter amount"
+              min="1"
+              required
+            >
+
+            <label for="withdrawMethod">Demo payout method</label>
+            <select id="withdrawMethod">
+              <option value="Demo UPI">Demo UPI</option>
+              <option value="Demo Bank">Demo Bank</option>
+            </select>
+
+            <button type="submit" class="primary-button">
+              Submit Demo Request
+            </button>
+          </form>
+
+          <div id="withdrawMessage" class="message"></div>
+        </div>
+
+        <div class="content-card">
+          <h3>Withdrawal History</h3>
+          <div id="withdrawalList">
+            <p class="empty-state">No withdrawal requests yet.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Profile -->
+      <section id="profile" class="section">
+        <div class="section-heading">
+          <div>
+            <h1>My Profile</h1>
+            <p>Your demo account information.</p>
+          </div>
+        </div>
+
+        <div class="content-card profile-card">
+          <div class="large-avatar">U</div>
+          <h2>Demo User</h2>
+          <p class="muted">demo@payorbit.example</p>
+          <div class="profile-detail">
+            <span>Account Type</span>
+            <strong>Demo Account</strong>
+          </div>
+          <div class="profile-detail">
+            <span>Account Status</span>
+            <strong class="status-active">Active Demo</strong>
+          </div>
+        </div>
+      </section>
+
+      <!-- Admin Settings -->
+      <section id="admin" class="section">
+        <div class="section-heading">
+          <div>
+            <h1>Admin Settings</h1>
+            <p>Configure illustrative demo rewards.</p>
+          </div>
+          <span class="demo-label">LOCAL DEMO</span>
+        </div>
+
+        <div class="content-card">
+          <h3>Reward Configuration</h3>
+          <p class="muted">
+            These settings only affect the local demonstration.
+          </p>
+
+          <form id="settingsForm">
+            <label for="commission">Demo Reward Percentage (%)</label>
+            <input
+              type="number"
+              id="commission"
+              min="0"
+              max="100"
+              step="0.01"
+              value="5"
+            >
+
+            <label for="fixedReward">Fixed Demo Reward (₹)</label>
+            <input
+              type="number"
+              id="fixedReward"
+              min="0"
+              value="10"
+            >
+
+            <label for="minimumWithdrawal">Minimum Demo Withdrawal (₹)</label>
+            <input
+              type="number"
+              id="minimumWithdrawal"
+              min="1"
+              value="100"
+            >
+
+            <button type="submit" class="primary-button">
+              Save Demo Settings
+            </button>
+          </form>
+
+          <div id="settingsMessage" class="message"></div>
+        </div>
+
+        <div class="content-card warning-card">
+          <h3>Important</h3>
+          <p>
+            This is a front-end prototype. It has no real payment processing,
+            authentication, database or payout connection. All displayed
+            balances and rewards are illustrative and cannot be withdrawn.
+          </p>
+        </div>
+      </section>
+
+      <footer>
+        © 2026 PayOrbit. Demo platform.
+      </footer>
+
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
